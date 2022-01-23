@@ -1,0 +1,56 @@
+{
+  "name": "move-net-pose-net",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@mediapipe/pose": "^0.3.1621277220",
+    "@tensorflow-models/pose-detection": "^0.0.3",
+    "@tensorflow/tfjs-backend-webgl": "^3.7.0",
+    "@tensorflow/tfjs-converter": "^3.7.0",
+    "@tensorflow/tfjs-core": "^3.7.0",
+    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/react": "^11.1.0",
+    "@testing-library/user-event": "^12.1.10",
+    "postcss-cli": "^9.1.0",
+    "postcss-import": "^14.0.2",
+    "react": "^17.0.2",
+    "react-device-detect": "^1.17.0",
+    "react-dom": "^17.0.2",
+    "react-scripts": "4.0.3",
+    "react-webcam": "^5.2.4",
+    "web-vitals": "^1.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "dev": "react-scripts start",
+    "eject": "react-scripts eject",
+    "build": "yarn build:css && react-scripts build",
+    "test": "react-scripts test",
+    "watch:css": "TAILWIND_MODE=watch postcss src/styles/tailwind.pcss -o src/styles/output.css --watch",
+    "build:css": "postcss src/styles/tailwind.pcss -o src/styles/output.css --minify"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.2",
+    "express": "^4.17.1",
+    "postcss": "^8.4.5",
+    "tailwindcss": "^3.0.15"
+  }
+}
