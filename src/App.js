@@ -1,11 +1,15 @@
 import * as tfJsCore from '@tensorflow/tfjs-core';
 import * as tfJsConverter from '@tensorflow/tfjs-converter';
 import * as tfJsBackendWebgl from '@tensorflow/tfjs-backend-webgl';
-import {useEffect, useRef, useState} from "react";
+import { useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
-import {isMobile} from 'react-device-detect';
+import { isMobile } from 'react-device-detect';
 import * as poseDetection from '@tensorflow-models/pose-detection';
-import {MOVENET_CONFIGS,LINE_WIDTH,DEFAULT_RADIUS} from "./config"
+import { MOVENET_CONFIGS, LINE_WIDTH, DEFAULT_RADIUS } from "./config"
+import * as ml5 from "ml5";
+import modeljson from "./models/model.json";
+import metadata from "./models/model_meta.json";
+import asanas from "./models/asanas.json";
 
 let detector;
 let start_inference_time;
@@ -17,13 +21,40 @@ let canvas;
 let contex2d;
 let model;
 let modelType;
+let brain;
+let poseLabel = "pose";
+let text = "oki";
+let poseScore = "0";
+let lastPoseLabel;
+
+const options = {
+    task: 'classification' // or 'regression'
+}
+const modelDetails = {
+    model: modeljson,
+    metadata: metadata,
+    weights: "https://cdn.glitch.global/e6659bd5-94b1-4dbc-94f9-5468bd8f317d/model.weights.bin?v=1642380976991"
+}
+
+// this loads the ml5 Neural Network model with the options specified and the files uploaded
+brain = ml5.neuralNetwork(options);
+console.log(modelDetails)
+
+brain.load(modelDetails, modelLoaded)
+
+function modelLoaded() {
+    // continue on your neural network journey
+    // use nn.classify() for classifications or nn.predict() for regressions
+}
+
+console.log("after loading the model", brain)
 
 const VIDEO_CONFIGS = {
     facingMode: "user",
     deviceId: "",
-    frameRate: {max: 60, ideal: 30},
-     width: isMobile ? 360 : 640,
-     height: isMobile ? 270 : 480
+    frameRate: { max: 60, ideal: 30 },
+    width: isMobile ? 360 : 640,
+    height: isMobile ? 270 : 480
 };
 
 
@@ -49,7 +80,7 @@ function App() {
     const createDetector = async () => {
         model = poseDetection.SupportedModels.MoveNet;
         modelType = poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING; //or SINGLEPOSE_THUNDER
-        return await poseDetection.createDetector(model, {modelType: modelType});
+        return await poseDetection.createDetector(model, { modelType: modelType });
     }
 
     const renderPrediction = async () => {
@@ -126,11 +157,49 @@ function App() {
     }
 
     const getResults = (pose) => {
-        if (pose.keypoints != null) {
+        if (pose.keypoints != undefined && pose.keypoints != null) {
+            let inputs = [];
+            for (let i = 0; i < pose.keypoints.length; i++) {
+                let x = pose.keypoints[i].x;
+                let y = pose.keypoints[i].y;
+                inputs.push(x);
+                inputs.push(y);
+            }
             getKeyPoints(pose.keypoints);
             drawSkeleton(pose.keypoints);
+            brain.classify(inputs, handleclassify);
+            // console.log("classify", brain)
         }
+
     }
+
+    function handleclassify(error, results) {
+        console.log("resulst",results)
+        if (results && results[0].confidence > 0.70) {
+            poseLabel = results[0].label;
+            poseScore = results[0].confidence.toFixed(2);
+        
+            // this tells it to run the writePose & writeInfo functions
+            if (lastPoseLabel !== poseLabel) {
+              console.log("we got to this point")
+            }
+            lastPoseLabel = results[0].label;
+          }
+          
+          // here it calls for classifyPose again with a timeout
+    
+          setTimeout(getResults, 1000);
+    }
+
+    function handleResults(error, result) {
+        if (error) {
+            console.error(error);
+            return;
+        }
+        console.log(result); // {label: 'red', confidence: 0.8};
+    }
+
+
 
     const getKeyPoints = (keypoints) => {
         const keypointInd = poseDetection.util.getKeypointIndexBySide(model);
@@ -202,16 +271,16 @@ function App() {
         <section >
             <div>
                 <Webcam
-                    style={{visibility: "hidden"}}
+                    style={{ visibility: "hidden" }}
                     ref={webcamRef}
                     audio={false}
                     height={isMobile ? 270 : 480}
                     width={isMobile ? 360 : 640}
                     videoConstraints={VIDEO_CONFIGS}
                     onUserMediaError={onUserMediaError}
-                    onUserMedia={onUserMedia}/>
-                <canvas  id="canvas"/>
-               
+                    onUserMedia={onUserMedia} />
+                <canvas id="canvas" />
+
             </div>
         </section>
     );
