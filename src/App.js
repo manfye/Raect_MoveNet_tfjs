@@ -157,7 +157,8 @@ function App() {
     }
 
     const getResults = (pose) => {
-        if (pose.keypoints != undefined && pose.keypoints != null) {
+       
+        if (pose) {
             let inputs = [];
             for (let i = 0; i < pose.keypoints.length; i++) {
                 let x = pose.keypoints[i].x;
